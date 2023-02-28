@@ -1,39 +1,22 @@
 #!/bin/bash
 
 replacement_policies="crit lru drrip srrip"
-warmup=50_000_000
-simulate=200_000_000
 result_dir="result-$(date +'%Y-%m-%d_%H-%M')"
 
-function compile {
-    pushd "ChampSim"
-    ./config.sh $1
-    make -j $(nproc)
-    popd
-}
-
-function run {
-    mkdir -p $result_dir
-    $1 --warmup_instructions $warmup \
-       --simulation_instructions $simulate \
-       $2 \
-       > "$result_dir/$(basename $1).$(basename $2 .champsimtrace.xz)"
-}
-
-for repl in $replacement_policies; do
-    echo "Compiling ChampSim with $repl replacement"
-    compile "$(realpath config/${repl}_config.json)"
-done
-
-echo "Done compilation"
+mkdir -p $result_dir
 
 for trace in trace/*.champsimtrace.xz; do
     for repl in $replacement_policies; do
-        echo "Running ChampSim with $repl replacement on $trace"
-        run "ChampSim/$(jq -r '.executable_name' "config/${repl}_config.json")" $trace
-        echo "Done running ChampSim with $repl replacement on $trace"
-    done &
+        sbatch -A naiss2023-22-203 \
+               -p core \
+               -n 1 \
+               -t 1:00:00 \
+               -J "$(basename $repl).$(basename $trace .champsimtrace.xz)" \
+               script/slurm-job.sh \
+               "ChampSim/$(jq -r '.executable_name' "config/${repl}_config.json")" \
+               $trace \
+               $result_dir
+    done
 done
 
-wait
-echo "Done running"
+echo "Submitted all jobs"
