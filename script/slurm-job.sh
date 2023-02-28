@@ -1,7 +1,9 @@
 #!/bin/bash -l
 
-warmup=50_000_000
-simulate=200_000_000
+warmup=50000000
+simulate=200000000
+
+echo $warmup
 
 $1 --warmup_instructions $warmup \
    --simulation_instructions $simulate \
