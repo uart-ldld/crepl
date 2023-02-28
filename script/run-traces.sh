@@ -30,8 +30,9 @@ echo "Done compilation"
 for trace in trace/*.champsimtrace.xz; do
     for repl in $replacement_policies; do
         echo "Running ChampSim with $repl replacement on $trace"
-        run "ChampSim/$(jq -r '.executable_name' "config/${repl}_config.json")" $trace &
-    done
+        run "ChampSim/$(jq -r '.executable_name' "config/${repl}_config.json")" $trace
+        echo "Done running ChampSim with $repl replacement on $trace"
+    done &
 done
 
 wait
