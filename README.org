@@ -1,0 +1,3 @@
+#+title: Crepl --- Criticality based replacement policy
+
+Crepl is currently implemented in ChampSim as a submodule of in this repository. This repository additionally contains notes, configurations, utility scripts, and simulation results.
