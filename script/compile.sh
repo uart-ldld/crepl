@@ -6,6 +6,7 @@ function compile {
     pushd "ChampSim"
     ./config.sh $1
     make -j $(nproc)
+    make clean
     popd
 }
 
