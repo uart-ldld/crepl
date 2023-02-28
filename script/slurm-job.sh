@@ -3,8 +3,6 @@
 warmup=50000000
 simulate=200000000
 
-echo $warmup
-
 $1 --warmup_instructions $warmup \
    --simulation_instructions $simulate \
    $2 \
