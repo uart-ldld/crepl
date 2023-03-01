@@ -10,7 +10,7 @@ for trace in trace/*.champsimtrace.xz; do
         sbatch -A naiss2023-22-203 \
                -p core \
                -n 1 \
-               -t 1:00:00 \
+               -t 2:00:00 \
                -J "$(basename $repl).$(basename $trace .champsimtrace.xz)" \
                script/slurm-job.sh \
                "ChampSim/$(jq -r '.executable_name' "config/${repl}_config.json")" \
