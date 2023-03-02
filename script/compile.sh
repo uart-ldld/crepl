@@ -2,6 +2,10 @@
 
 replacement_policies="crit lru drrip srrip"
 
+if command -v module; then
+    module load gcc/12.2.0
+fi
+
 function compile {
     pushd "ChampSim"
     ./config.sh $1
