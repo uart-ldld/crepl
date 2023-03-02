@@ -1,3 +1,4 @@
 [submodule "ChampSim"]
 	path = ChampSim
 	url = git@github.com:uart-ldld/ChampSim.git
+        branch = master
