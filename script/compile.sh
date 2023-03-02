@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/bin/bash -l
+
+#SBATCH -A naiss2023-22-203
+#SBATCH -p devcore
+#SBATCH -n 8
+#SBATCH -t 0:15:00
 
 replacement_policies="crit lru drrip srrip"
 
@@ -13,6 +18,8 @@ function compile {
     make clean
     popd
 }
+
+echo "Using $(nproc) cores"
 
 for repl in $replacement_policies; do
     echo "Compiling ChampSim with $repl replacement"
