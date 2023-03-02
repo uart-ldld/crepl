@@ -1,7 +1,7 @@
 #!/bin/bash
 
 replacement_policies="crit lru drrip srrip"
-result_dir="result-$(date +'%Y-%m-%d_%H-%M')"
+result_dir="result-$(date +'%Y-%m-%d_%H-%M')-$(git rev-parse --short HEAD)"
 
 mkdir -p $result_dir
 
