@@ -74,8 +74,7 @@ weighResults results weights =
 benchmarkWSC :: String -> [(String, Maybe Double)] -> String
 benchmarkWSC benchmark results =
   printf
-    "# %s\n\
-    \%s\n"
+    "%s %s\n"
     benchmark
     (unwords ipcs)
  where
@@ -87,16 +86,18 @@ benchmarkWSC benchmark results =
 toWSC :: [(String, String, Maybe Double)] -> String
 toWSC results =
   printf
-    "# %s\n\
+    "benchmark %s\n\
     \%s"
-    (unwords $ sort $ nub $ map (\(repl, _, _) -> repl) results)
+    (unwords . sort . nub $ map (\(repl, _, _) -> repl) sortedResults)
     ( concat
         [ benchmarkWSC benchmark $
           map (\(repl, _, ipc) -> (repl, ipc)) $
-            filter (\(_, benchmark', _) -> benchmark == benchmark') results
-        | benchmark <- nub $ map (\(_, benchmark, _) -> benchmark) results
+            filter (\(_, benchmark', _) -> benchmark == benchmark') sortedResults
+        | benchmark <- nub $ map (\(_, benchmark, _) -> benchmark) sortedResults
         ]
     )
+ where
+  sortedResults = sortBy (\(_, b1, _) (_, b2, _) -> compare b1 b2) results
 
 main :: IO ()
 main = do
