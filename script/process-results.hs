@@ -2,26 +2,27 @@ import Data.List
 import System.Directory
 import System.Environment
 import System.FilePath
+import System.IO
 import Text.Printf
 import Text.Regex.TDFA
 
 resultFileNameRegex :: String
-resultFileNameRegex = "champsim-([a-z]+)\\.(.*)-([0-9]+)B"
+resultFileNameRegex = "champsim-([^.]+)\\.(.*)-([0-9]+)B"
 
 ipcRegex :: String
 ipcRegex = "CPU 0 cumulative IPC: ([0-9]+.?[0-9]*)"
 
 readIpc :: FilePath -> IO (Maybe Double)
 readIpc file = do
-  content <- readFile file
+  content <- readFile' file
   case content =~ ipcRegex :: (String, String, String, [String]) of
     (_, _, _, [ipc]) -> return $ Just $ read ipc
     _ -> return Nothing
 
 parseResultFileName :: FilePath -> (String, String, Int)
-parseResultFileName name = (replacement, benchmark, read simpoint)
+parseResultFileName name = (config, benchmark, read simpoint)
  where
-  (_, _, _, [replacement, benchmark, simpoint]) =
+  (_, _, _, [config, benchmark, simpoint]) =
     name =~ resultFileNameRegex ::
       (String, String, String, [String])
 
@@ -31,15 +32,15 @@ readResults dir = do
   ipcs <- mapM (readIpc . (dir </>)) files
   return $
     zipWith
-      (\(replacement, benchmark, simpoint) ipc -> (replacement, benchmark, simpoint, ipc))
+      (\(config, benchmark, simpoint) ipc -> (config, benchmark, simpoint, ipc))
       (map parseResultFileName files)
       ipcs
 
 readWeights :: FilePath -> IO [(String, [(Int, Double)])]
 readWeights dir = do
   benchmarks <- listDirectory dir
-  simpoints <- mapM (\benchmark -> readFile $ dir </> benchmark </> "simpoints.out") benchmarks
-  weights <- mapM (\benchmark -> readFile $ dir </> benchmark </> "weights.out") benchmarks
+  simpoints <- mapM (\benchmark -> readFile' $ dir </> benchmark </> "simpoints.out") benchmarks
+  weights <- mapM (\benchmark -> readFile' $ dir </> benchmark </> "weights.out") benchmarks
   return $
     zipWith3
       ( \benchmark simpoint weight ->
@@ -54,7 +55,7 @@ weighResults ::
   [(String, [(Int, Double)])] ->
   [(String, String, Maybe Double)]
 weighResults results weights =
-  [ ( replacement
+  [ ( config
     , benchmark
     , sum
         <$> mapM
@@ -63,11 +64,11 @@ weighResults results weights =
                in (*) <$> weight <*> ipc
           )
           [ (simpoint, ipc)
-          | (replacement', benchmark', simpoint, ipc) <- results
-          , replacement == replacement' && benchmark == benchmark'
+          | (config', benchmark', simpoint, ipc) <- results
+          , config == config' && benchmark == benchmark'
           ]
     )
-  | replacement <- nub $ map (\(repl, _, _, _) -> repl) results
+  | config <- nub $ map (\(c, _, _, _) -> c) results
   , (benchmark, simpoints) <- weights
   ]
 
@@ -88,7 +89,7 @@ toWSC results =
   printf
     "benchmark %s\n\
     \%s"
-    (unwords . sort . nub $ map (\(repl, _, _) -> repl) sortedResults)
+    (unwords . sort . nub $ map (\(c, _, _) -> c) sortedResults)
     ( concat
         [ benchmarkWSC benchmark $
           map (\(repl, _, ipc) -> (repl, ipc)) $
