@@ -12,7 +12,7 @@ for trace in $trace_dir/*.champsimtrace.xz; do
                -p core \
                -n 1 \
                -t 2:00:00 \
-               -J "$bin.$(basename $trace .champsimtrace.xz)" \
+               -J "$(basename bin).$(basename $trace .champsimtrace.xz)" \
                script/slurm-job.sh \
                $bin \
                $trace \
