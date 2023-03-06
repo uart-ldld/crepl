@@ -5,8 +5,6 @@
 #SBATCH -n 8
 #SBATCH -t 0:15:00
 
-replacement_policies="crit lru drrip srrip"
-
 if command -v module; then
     module load gcc
 fi
@@ -21,9 +19,9 @@ function compile {
 
 echo "Using $(nproc) cores"
 
-for repl in $replacement_policies; do
-    echo "Compiling ChampSim with $repl replacement"
-    compile "$(realpath config/${repl}_config.json)"
+for config in config-$(git rev-parse --short HEAD)/*_config.json; do
+    echo "Compiling ChampSim with $(basename $config)"
+    compile "$(realpath $config)"
 done
 
 echo "Done compilation"
