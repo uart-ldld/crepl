@@ -1,4 +1,6 @@
 import Data.List
+import qualified Data.Vector as V
+import Statistics.Sample
 import System.Directory
 import System.Environment
 import System.FilePath
@@ -7,7 +9,10 @@ import Text.Printf
 import Text.Regex.TDFA
 
 resultFileNameRegex :: String
-resultFileNameRegex = "champsim-([^.]+)\\.(.*)-([0-9]+)B"
+resultFileNameRegex = "^champsim-([^.]+)\\.(.*)-([0-9]+)B$"
+
+benchmarkDirRegex :: String
+benchmarkDirRegex = "^[0-9]+\\.[^.]+$"
 
 ipcRegex :: String
 ipcRegex = "CPU 0 cumulative IPC: ([0-9]+.?[0-9]*)"
@@ -38,7 +43,7 @@ readResults dir = do
 
 readWeights :: FilePath -> IO [(String, [(Int, Double)])]
 readWeights dir = do
-  benchmarks <- listDirectory dir
+  benchmarks <- filter (=~ benchmarkDirRegex) <$> listDirectory dir
   simpoints <- mapM (\benchmark -> readFile' $ dir </> benchmark </> "simpoints.out") benchmarks
   weights <- mapM (\benchmark -> readFile' $ dir </> benchmark </> "weights.out") benchmarks
   return $
@@ -105,4 +110,10 @@ main = do
   [weightDir, resultDir] <- getArgs
   results <- readResults resultDir
   weights <- readWeights weightDir
-  putStr $ toWSC $ weighResults results weights
+  let weightedResults = weighResults results weights
+      means =
+        [ let configResults = [ipc | (c, _, ipc) <- weightedResults, c == config]
+           in (config, "geoMean", geometricMean . V.fromList <$> sequence configResults)
+        | config <- nub $ map (\(c, _, _) -> c) weightedResults
+        ]
+   in putStr $ toWSC $ weightedResults ++ means
