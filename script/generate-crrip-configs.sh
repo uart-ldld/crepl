@@ -7,9 +7,9 @@ make_config_dir
 generate_config "crrip" \
                 ".load_branch_criticality = true | \
                  .load_load_criticality = true | \
-                 .L1D.replacement = \"crit\" | \
-                 .L2C.replacement = \"crit\" | \
-                 .LLC.replacement = \"crit\""
+                 .L1D.replacement = \"crrip\" | \
+                 .L2C.replacement = \"crrip\" | \
+                 .LLC.replacement = \"crrip\""
 
 generate_config "srrip" \
                 ".L1D.replacement = \"srrip\" | \
